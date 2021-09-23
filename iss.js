@@ -54,6 +54,16 @@ const fetchMyIP = function(callback) {
   });
 };
 
+/**
+ * Makes a single API request to retrieve the lat/lng for a given IPv4 address.
+ * Input:
+ *   - The ip (ipv4) address (string)
+ *   - A callback (to pass back an error or the lat/lng object)
+ * Returns (via Callback):
+ *   - An error, if any (nullable)
+ *   - The lat and lng as an object (null if error). Example:
+ *     { latitude: '49.27670', longitude: '-123.13000' }
+ */
 const fetchCoordsByIP = (ip, callback) => {
   // use request to fetch lat/lng from JSON API
   request(`https://freegeoip.app/json/${ip}`, (error, response, body) => {
@@ -123,4 +133,27 @@ const fetchISSFlyOverTimes = (coords, callback) => {
   });
 };
 
-module.exports = { fetchMyIP, fetchCoordsByIP, fetchISSFlyOverTimes };
+/**
+ * Orchestrates multiple API requests in order to determine the next 5 upcoming ISS fly overs for the user's current location.
+ * Input:
+ *   - A callback with an error or results.
+ * Returns (via Callback):
+ *   - An error, if any (nullable)
+ *   - The fly-over times as an array (null if error):
+ *     [ { risetime: <number>, duration: <number> }, ... ]
+ */
+const nextISSTimesForMyLocation = function(passTimes, callback) {
+  if (!passTimes) {
+    callback('No Passtimes Available!', null);
+    return;
+  }
+
+  let passDate, displayResult;
+  for (let pass of passTimes) {
+    passDate = new Date(pass.risetime * 1000);
+    displayResult = `Next pass at ${passDate} for ${pass.duration} seconds!`;
+    callback(null, displayResult);
+  }
+};
+
+module.exports = { fetchMyIP, fetchCoordsByIP, fetchISSFlyOverTimes, nextISSTimesForMyLocation };

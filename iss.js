@@ -54,4 +54,33 @@ const fetchMyIP = function(callback) {
   });
 };
 
-module.exports = { fetchMyIP };
+const fetchCoordsByIP = (ip, callback) => {
+  // use request to fetch lat/lng from JSON API
+  request(`https://freegeoip.app/json/${ip}`, (error, response, body) => {
+
+    if (error) {
+      callback(error, null);
+      return;
+    }
+
+    // if non-200 status, assume server error
+    if (response.statusCode !== 200) {
+      const msg = `Status Code ${response.statusCode} when fetching IP. Response: ${body}`;
+      callback(msg, null);
+      return;
+    }
+
+    if (!isJson(body)) {
+      callback('Response is not in JSON format!', null);
+      return;
+    }
+
+    if (isJson(body) && isJsonParsable(body)) {
+      const { latitude, longitude } = JSON.parse(body);
+      callback(null, { latitude, longitude });
+    }
+
+  });
+};
+
+module.exports = { fetchMyIP, fetchCoordsByIP };
